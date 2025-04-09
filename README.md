@@ -76,7 +76,7 @@
 
   ### show True Recall and True Precision values:
   ```bash
-  python detBalloon/02_metrics.py
+  python detBalloon/03_metrics.py
   ```
 
   ### run detection:
