@@ -32,6 +32,11 @@
   ```bash
   pip install future tensorboard
   ```
+
+  ### clone mmdetection repo (used to training & testing):
+  ```bash
+  git clone https://github.com/open-mmlab/mmdetection.git
+  ```
 </details>
 
 
