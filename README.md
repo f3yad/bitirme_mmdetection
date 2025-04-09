@@ -34,6 +34,16 @@
 </details>
 
 <details>
+  <summary style="font-size: 1.3rem">Example: First Demo (testing)</summary>
+
+  ### run detection:
+  for all images
+  ```bash
+  python detFirstDemo/detect_all.py
+  ```
+</details>
+
+<details>
   <summary style="font-size: 1.3rem">Example: Working with balloon dataset</summary>
 
   ### convert balloon to coco format:
@@ -58,7 +68,7 @@
   python mmdetection/tools/test.py configs/rtmdet_tiny_1xb4-20e_balloon.py work_dirs/rtmdet_tiny_1xb4-20e_balloon/epoch_20.pth --out detBalloon/balloon.pkl
   ```
 
-  ### run detection for single image:
+  ### run detection:
   for single image
   ```bash
   python detBalloon/detect_single.py
