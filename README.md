@@ -6,6 +6,7 @@
   ### create a new conde env with python 3.9:
   ```bash
   conda create -n bitirmeProjesi
+  conda activate bitirmeProjesi
   conda install python=3.9
   ```
 
