@@ -33,6 +33,9 @@
   ```
 </details>
 
+
+
+
 <details>
   <summary style="font-size: 1.3rem">Example: First Demo (testing)</summary>
 
@@ -42,6 +45,9 @@
   python detFirstDemo/detect_all.py
   ```
 </details>
+
+
+
 
 <details>
   <summary style="font-size: 1.3rem">Example: Working with balloon dataset</summary>
@@ -66,6 +72,11 @@
   you can also change epoch to the best epoch i.e: best_coco_bbox_mAP_epoch_XX.pth
   ```bash
   python mmdetection/tools/test.py configs/rtmdet_tiny_1xb4-20e_balloon.py work_dirs/rtmdet_tiny_1xb4-20e_balloon/epoch_20.pth --out detBalloon/balloon.pkl
+  ```
+
+  ### show True Recall and True Precision values:
+  ```bash
+  python detBalloon/02_metrics.py
   ```
 
   ### run detection:
