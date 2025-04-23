@@ -1,6 +1,6 @@
 config_balloon = """
 # Inherit and overwrite part of the config based on this config
-_base_ = '../checkpoints/rtmdet_tiny_8xb32-300e_coco.py'
+_base_ = './rtmdet_tiny_8xb32-300e_coco.py'
 
 data_root = 'datasets/balloon/' # dataset root
 

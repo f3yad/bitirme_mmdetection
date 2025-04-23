@@ -79,11 +79,24 @@
   python detBalloon/02_create_config_file.py
   ```
 
-  ### train:
+  ### prepare the custom evaluator:
+  * copy the custom evaluator to the correct location:
   ```bash
-  python mmdetection/tools/train.py configs/rtmdet_tiny_1xb4-20e_balloon.py
+  cp _to_copy/yolo_style_pr.py mmdetection/mmdet/evaluation/metrics/
   ```
+  * edit the "mmdetection/mmdet/evaluation/metrics/__init__.py" file
+  * append "YOLOStylePR" to the \_\_all\_\_ list
 
+
+  ### train:
+  * without yolo metrics
+  ```bash
+  python -W ignore mmdetection/tools/train.py configs/rtmdet_tiny_1xb4-20e_balloon.py
+  ```
+  * with yolo metrics (custom evaluator)
+  ```bash
+  python -W ignore mmdetection/tools/train.py configs/rtmdet_tiny_1xb4-20e_balloon_with-yolo-metrics.py
+  ```
   ### create .pkl file:
   you can also change epoch to the best epoch i.e: best_coco_bbox_mAP_epoch_XX.pth
   ```bash
