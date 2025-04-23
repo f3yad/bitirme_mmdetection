@@ -20,12 +20,26 @@
   python _env/verify_pytorch.py.py
   ```
 
-  ### install openmim, mmengine, mmcv and mmdet:
+  ### install openmim, mmengine, mmcv, mmdet and mmyolo:
   ```bash
   pip install -U openmim
   mim install mmengine
   CXXFLAGS="-std=c++17" pip install mmcv
-  mim install mmdet
+
+  git clone https://github.com/open-mmlab/mmdetection.git
+  cd mmdetection
+  CXXFLAGS="-std=c++17" pip install -v -e .
+
+  git clone https://github.com/open-mmlab/mmyolo.git
+  cd mmyolo
+  pip install -r requirements/albu.txt
+  CXXFLAGS="-std=c++17" pip install -v -e .
+  ```
+  ### edit the "mmcv_maximum_version" variable in the following files to be like this:
+  * /mmdetection/mmdet/\_\_init\_\_.py
+  * /mmyolo/mmyolo/\_\_init\_\_.py
+  ```bash
+  mmcv_maximum_version = '2.2.1'
   ```
 
   ### install future and tensorboard:
@@ -33,10 +47,6 @@
   pip install future tensorboard
   ```
 
-  ### clone mmdetection repo (used to training & testing):
-  ```bash
-  git clone https://github.com/open-mmlab/mmdetection.git
-  ```
 </details>
 
 
