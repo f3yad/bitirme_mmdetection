@@ -593,7 +593,7 @@ class YOLOStylePR(BaseMetric):
                     table_data = [headers]
                     table_data += [result for result in results_2d]
                     table = AsciiTable(table_data)
-                    # logger.info('\n' + table.table)
+                    logger.info('\n' + table.table)
 
                 if metric_items is None:
                     metric_items = [
@@ -646,23 +646,60 @@ class YOLOStylePR(BaseMetric):
         for gts, preds in results:
             pred_bboxes = preds['bboxes']
             pred_labels = preds['labels']
+            pred_scores = preds['scores']
             gt_bboxes = gts['gt_instances']['bboxes'].cpu().numpy()
             gt_labels = gts['gt_instances']['labels'].cpu().numpy()
 
             matched_gt = set()
-            for pb, pl in zip(pred_bboxes, pred_labels):
-                ious = self.bbox_iou(pb, gt_bboxes)
+            conf_values = [] ######
+            for pb, pl, ps in zip(pred_bboxes, pred_labels, pred_scores):
+                conf_values.append(ps) ####
+                if ps < 0.02:
+                    continue
+
+                # Filter ground truths of the same class as the prediction
+                class_mask = gt_labels == pl
+                gt_bboxes_cls = gt_bboxes[class_mask]
+                if len(gt_bboxes_cls) == 0:
+                    pryolo_classwise[pl]['FP'] += 1
+                    continue
+
+                # Compute IoUs between the predicted box and all ground truth boxes of the same class
+                ious = self.bbox_iou(pb, gt_bboxes_cls)
+                # ious = self.bbox_iou(pb, gt_bboxes)
+
+                # If there are no valid IoU values (i.e., no overlap), continue to the next prediction
+                if len(ious) == 0 or np.max(ious) < iou_threshold:
+                    pryolo_classwise[pl]['FP'] += 1
+                    continue
+
+
+
                 match_idx = np.argmax(ious)
                 if ious[match_idx] >= iou_threshold and gt_labels[match_idx] == pl and match_idx not in matched_gt:
                     pryolo_classwise[pl]['TP'] += 1
-                    matched_gt.add(match_idx)
+                    # matched_gt.add(match_idx)
+                    matched_gt.add(np.where(class_mask)[0][match_idx])
                 else:
                     pryolo_classwise[pl]['FP'] += 1
 
-            # Count FN (missed gts)
-            for i, gl in enumerate(gt_labels):
-                if i not in matched_gt:
-                    pryolo_classwise[gl]['FN'] += 1
+
+            # print(conf_values)
+
+
+            # FN (False Negatives) are the ground truths that didn't match any predictions
+            unmatched_gt = set(range(len(gt_bboxes)))
+            for matched in matched_gt:
+                unmatched_gt.discard(matched)
+
+            for unmatched in unmatched_gt:
+                pl = gt_labels[unmatched]
+                pryolo_classwise[pl]['FN'] += 1
+
+            # # Count FN (missed gts)
+            # for i, gl in enumerate(gt_labels):
+            #     if i not in matched_gt:
+            #         pryolo_classwise[gl]['FN'] += 1
 
         pryolo_metrics = {}
         for cls, stats in pryolo_classwise.items():
