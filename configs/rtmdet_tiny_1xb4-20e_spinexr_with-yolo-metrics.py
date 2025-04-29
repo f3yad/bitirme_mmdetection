@@ -4,8 +4,8 @@ _base_ = './rtmdet_tiny_8xb32-300e_coco.py'
 
 data_root = 'datasets/spinexr/' # dataset root
 
-train_batch_size_per_gpu = 4
-train_num_workers = 2
+train_batch_size_per_gpu = 10
+train_num_workers = 1
 
 max_epochs = 20
 stage2_num_epochs = 1

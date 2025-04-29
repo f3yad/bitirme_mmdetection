@@ -654,7 +654,7 @@ class YOLOStylePR(BaseMetric):
             conf_values = [] ######
             for pb, pl, ps in zip(pred_bboxes, pred_labels, pred_scores):
                 conf_values.append(ps) ####
-                if ps < 0.02:
+                if ps < 0.5:
                     continue
 
                 # Filter ground truths of the same class as the prediction
