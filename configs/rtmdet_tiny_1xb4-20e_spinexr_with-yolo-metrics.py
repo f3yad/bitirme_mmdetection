@@ -1,6 +1,6 @@
 
 # Inherit and overwrite part of the config based on this config
-_base_ = './rtmdet_l_8xb32-300e_coco.py'
+_base_ = './rtmdet_tiny_8xb32-300e_coco.py'
 
 data_root = 'datasets/spinexr/' # dataset root
 
