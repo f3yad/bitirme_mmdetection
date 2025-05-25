@@ -1,55 +1,7 @@
-# data_root = 'data/coco/'
-data_root = 'datasets/spinexr/' # dataset root
-
-# train_ann_file = 'annotations/instances_train2017.json'
-# train_ann_file = 'train.json'
-train_ann_file = 'train_full_10.json'
-
-# val_ann_file = 'annotations/instances_val2017.json'
-# val_ann_file = 'test.json'
-val_ann_file = 'val.json'
-
-# train_data_prefix = 'train2017/'
-# train_data_prefix = 'train_images_jpg/'
-train_data_prefix = 'train_images_aug/'
-
-# val_data_prefix = 'val2017/'
-# val_data_prefix = 'test_images_jpg/'
-val_data_prefix = 'val_images/'
-
-# train_batch_size_per_gpu = 32
-train_batch_size_per_gpu = 10
-
-# train_num_workers = 10
-train_num_workers = 1
-
-# max_epochs = 300
-max_epochs = 100
-
-# stage2_num_epochs = 20
-stage2_num_epochs = 1
-
-# base_lr = 0.004
-base_lr = 0.0001
-
-# num_classes = 80
-num_classes = 7
-
-val_eval_ann_file = data_root + val_ann_file
-
-metainfo = {
-    'classes': ("Osteophytes", "Spondylolysthesis", "Disc space narrowing", "Other lesions", "Surgical implant", "Foraminal stenosis", "Vertebral collapse",),
-    'palette': [
-        (220, 20, 60),
-    ]
-}
-
-### BITIRME
-
 auto_scale_lr = dict(base_batch_size=16, enable=False)
 backend_args = None
+base_lr = 0.004
 checkpoint = 'https://download.openmmlab.com/mmdetection/v3.0/rtmdet/cspnext_rsb_pretrain/cspnext-tiny_imagenet_600e.pth'
-
 custom_hooks = [
     dict(
         ema_type='ExpMomentumEMA',
@@ -57,7 +9,6 @@ custom_hooks = [
         priority=49,
         type='EMAHook',
         update_buffers=True),
-
     dict(
         switch_epoch=280,
         switch_pipeline=[
@@ -95,13 +46,11 @@ custom_hooks = [
         ],
         type='PipelineSwitchHook'),
 ]
-
+data_root = 'data/coco/'
 dataset_type = 'CocoDataset'
 default_hooks = dict(
-    # checkpoint=dict(interval=10, max_keep_ckpts=3, type='CheckpointHook'),
-    checkpoint=dict(interval=5, max_keep_ckpts=3, type='CheckpointHook', save_best="auto"), ### BITIRME
-    # logger=dict(interval=50, type='LoggerHook'),
-    logger=dict(interval=5, type='LoggerHook'),   ### BITIRME
+    checkpoint=dict(interval=10, max_keep_ckpts=3, type='CheckpointHook'),
+    logger=dict(interval=50, type='LoggerHook'),
     param_scheduler=dict(type='ParamSchedulerHook'),
     sampler_seed=dict(type='DistSamplerSeedHook'),
     timer=dict(type='IterTimerHook'),
@@ -126,13 +75,10 @@ img_scales = [
     ),
 ]
 interval = 10
-
-# load_from = None
-load_from = './checkpoints/rtmdet_tiny_8xb32-300e_coco_20220902_112414-78e30dcc.pth'  ### BITIRME
-
+load_from = None
 log_level = 'INFO'
 log_processor = dict(by_epoch=True, type='LogProcessor', window_size=50)
-
+max_epochs = 300
 model = dict(
     backbone=dict(
         act_cfg=dict(inplace=True, type='SiLU'),
@@ -167,7 +113,7 @@ model = dict(
             type='QualityFocalLoss',
             use_sigmoid=True),
         norm_cfg=dict(type='SyncBN'),
-        num_classes=num_classes,
+        num_classes=80,
         pred_kernel_size=1,
         share_conv=True,
         stacked_convs=2,
@@ -211,43 +157,79 @@ model = dict(
         debug=False,
         pos_weight=-1),
     type='RTMDet')
-
-# optimizer
 optim_wrapper = dict(
-    # _delete_ = True,   ### BITIRME
-    # optimizer=dict(lr=0.004, type='AdamW', weight_decay=0.05),
-    optimizer=dict(lr=base_lr, type='AdamW', weight_decay=0.05),  ### BITIRME
+    optimizer=dict(lr=0.004, type='AdamW', weight_decay=0.05),
     paramwise_cfg=dict(
         bias_decay_mult=0, bypass_duplicate=True, norm_decay_mult=0),
     type='OptimWrapper')
-
-# learning rate
 param_scheduler = [
     dict(
-        begin=0,
-        by_epoch=False,
-        # end=1000,
-        end=10,   ### BITIRME
-        start_factor=1e-05,
+        begin=0, by_epoch=False, end=1000, start_factor=1e-05,
         type='LinearLR'),
     dict(
-        # use cosine lr from 10 to 20 epoch
-      
-        # T_max=150, # Must match the difference between begin and end.
-        T_max=max_epochs - max_epochs // 2, ### BITIRME
-        # begin=150,
-        begin=max_epochs // 2,  ### BITIRME
+        T_max=150,
+        begin=150,
         by_epoch=True,
         convert_to_iter_based=True,
-        # end=300,
-        end=max_epochs,  ### BITIRME
-        # eta_min=0.0002,
-        eta_min=base_lr * 0.05,   ### BITIRME
+        end=300,
+        eta_min=0.0002,
         type='CosineAnnealingLR'),
 ]
-
 resume = False
-
+stage2_num_epochs = 20
+test_cfg = dict(type='TestLoop')
+test_dataloader = dict(
+    batch_size=5,
+    dataset=dict(
+        ann_file='annotations/instances_val2017.json',
+        backend_args=None,
+        data_prefix=dict(img='val2017/'),
+        data_root='data/coco/',
+        pipeline=[
+            dict(backend_args=None, type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                640,
+                640,
+            ), type='Resize'),
+            dict(
+                pad_val=dict(img=(
+                    114,
+                    114,
+                    114,
+                )),
+                size=(
+                    640,
+                    640,
+                ),
+                type='Pad'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(
+                meta_keys=(
+                    'img_id',
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackDetInputs'),
+        ],
+        test_mode=True,
+        type='CocoDataset'),
+    drop_last=False,
+    num_workers=10,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+test_evaluator = dict(
+    ann_file='data/coco/annotations/instances_val2017.json',
+    backend_args=None,
+    format_only=False,
+    metric='bbox',
+    proposal_nums=(
+        100,
+        1,
+        10,
+    ),
+    type='CocoMetric')
 test_pipeline = [
     dict(backend_args=None, type='LoadImageFromFile'),
     dict(keep_ratio=True, scale=(
@@ -273,7 +255,6 @@ test_pipeline = [
         ),
         type='PackDetInputs'),
 ]
-
 train_cfg = dict(
     dynamic_intervals=[
         (
@@ -281,23 +262,17 @@ train_cfg = dict(
             1,
         ),
     ],
-    # max_epochs=300,
-    max_epochs=max_epochs,   ### BITIRME
+    max_epochs=300,
     type='EpochBasedTrainLoop',
-    # val_interval=10
-    val_interval=1   #### BITIRME
-)
-
-
+    val_interval=10)
 train_dataloader = dict(
     batch_sampler=None,
-    batch_size=train_batch_size_per_gpu,
+    batch_size=32,
     dataset=dict(
-        metainfo=metainfo,  ### BITIRME
-        ann_file=train_ann_file,
+        ann_file='annotations/instances_train2017.json',
         backend_args=None,
-        data_prefix=dict(img=train_data_prefix),
-        data_root=data_root,
+        data_prefix=dict(img='train2017/'),
+        data_root='data/coco/',
         filter_cfg=dict(filter_empty_gt=True, min_size=32),
         pipeline=[
             dict(backend_args=None, type='LoadImageFromFile'),
@@ -360,87 +335,67 @@ train_dataloader = dict(
             dict(type='PackDetInputs'),
         ],
         type='CocoDataset'),
-    num_workers=train_num_workers,
+    num_workers=10,
     persistent_workers=True,
     pin_memory=True,
     sampler=dict(shuffle=True, type='DefaultSampler'))
-
-# train_pipeline = [
-#     dict(backend_args=None, type='LoadImageFromFile'),
-#     dict(type='LoadAnnotations', with_bbox=True),
-#     dict(
-#         img_scale=(
-#             640,
-#             640,
-#         ),
-#         max_cached_images=20,
-#         pad_val=114.0,
-#         random_pop=False,
-#         type='CachedMosaic'),
-#     dict(
-#         keep_ratio=True,
-#         ratio_range=(
-#             0.5,
-#             2.0,
-#         ),
-#         scale=(
-#             1280,
-#             1280,
-#         ),
-#         type='RandomResize'),
-#     dict(crop_size=(
-#         640,
-#         640,
-#     ), type='RandomCrop'),
-#     dict(type='YOLOXHSVRandomAug'),
-#     dict(prob=0.5, type='RandomFlip'),
-#     dict(pad_val=dict(img=(
-#         114,
-#         114,
-#         114,
-#     )), size=(
-#         640,
-#         640,
-#     ), type='Pad'),
-#     dict(
-#         img_scale=(
-#             640,
-#             640,
-#         ),
-#         max_cached_images=10,
-#         pad_val=(
-#             114,
-#             114,
-#             114,
-#         ),
-#         prob=0.5,
-#         random_pop=False,
-#         ratio_range=(
-#             1.0,
-#             1.0,
-#         ),
-#         type='CachedMixUp'),
-#     dict(type='PackDetInputs'),
-# ]
-
 train_pipeline = [
-    dict(type='Mosaic', img_scale=(1333, 800), max_ratio=4 / 3, prob=0.5),  # Mosaic augmentation
-    dict(type='RandomFlip', flip_ratio=0.5),  # Random flip
-    dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),  # Resize image
-    dict(type='RandomCrop', crop_size=(512, 512), prob=0.5),  # Random crop to improve class distribution
-    dict(type='PhotometricDistortion', prob=0.5),  # Color jitter for more diversity in minor class appearances
-    dict(type='RandomBrightness', prob=0.3),  # Random brightness adjustment
-    dict(type='RandomContrast', prob=0.3),  # Random contrast adjustment
-    dict(type='RandomSaturation', prob=0.3),  # Random saturation adjustment
-    dict(type='CutOut', n_holes=8, max_h_size=32, max_w_size=32, prob=0.5),  # Cutout augmentation
-    dict(type='RandomAffine', scaling_ratio_range=(0.8, 1.2), prob=0.4),  # Random affine transformation
-    dict(type='RandomHSV', h_shift=0.1, s_shift=0.1, v_shift=0.1, prob=0.3),  # Random HSV shifts
-    dict(type='Normalize', mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True),  # Normalize
-    dict(type='Pad', size_divisor=32),  # Pad images to ensure divisible by 32
-    dict(type='DefaultFormatBundle'),  # Bundle data in standard format
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),  # Collect the data needed for the model
+    dict(backend_args=None, type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(
+        img_scale=(
+            640,
+            640,
+        ),
+        max_cached_images=20,
+        pad_val=114.0,
+        random_pop=False,
+        type='CachedMosaic'),
+    dict(
+        keep_ratio=True,
+        ratio_range=(
+            0.5,
+            2.0,
+        ),
+        scale=(
+            1280,
+            1280,
+        ),
+        type='RandomResize'),
+    dict(crop_size=(
+        640,
+        640,
+    ), type='RandomCrop'),
+    dict(type='YOLOXHSVRandomAug'),
+    dict(prob=0.5, type='RandomFlip'),
+    dict(pad_val=dict(img=(
+        114,
+        114,
+        114,
+    )), size=(
+        640,
+        640,
+    ), type='Pad'),
+    dict(
+        img_scale=(
+            640,
+            640,
+        ),
+        max_cached_images=10,
+        pad_val=(
+            114,
+            114,
+            114,
+        ),
+        prob=0.5,
+        random_pop=False,
+        ratio_range=(
+            1.0,
+            1.0,
+        ),
+        type='CachedMixUp'),
+    dict(type='PackDetInputs'),
 ]
-
 train_pipeline_stage2 = [
     dict(backend_args=None, type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True),
@@ -529,15 +484,13 @@ tta_pipeline = [
         type='TestTimeAug'),
 ]
 val_cfg = dict(type='ValLoop')
-
 val_dataloader = dict(
     batch_size=5,
     dataset=dict(
-        metainfo=metainfo,   ### BITIRME
-        ann_file=val_ann_file,
+        ann_file='annotations/instances_val2017.json',
         backend_args=None,
-        data_prefix=dict(img=val_data_prefix),
-        data_root=data_root,
+        data_prefix=dict(img='val2017/'),
+        data_root='data/coco/',
         pipeline=[
             dict(backend_args=None, type='LoadImageFromFile'),
             dict(keep_ratio=True, scale=(
@@ -572,103 +525,23 @@ val_dataloader = dict(
     num_workers=10,
     persistent_workers=True,
     sampler=dict(shuffle=False, type='DefaultSampler'))
-
 val_evaluator = dict(
-    ann_file=val_eval_ann_file,
+    ann_file='data/coco/annotations/instances_val2017.json',
     backend_args=None,
     format_only=False,
-    collect_device = "gpu",
     metric='bbox',
     proposal_nums=(
         100,
         1,
         10,
     ),
-    # type='CocoMetric',
-    type='YOLOStylePR',    ### BITIRME
-    # iou_threshold = 0.5,  ### BITIRME
-    # iou_thrs = 0.5,  ### BITIRME
-    classwise = True,   ### BITIRME
-)
-
-
-test_cfg = dict(type='TestLoop')
-
-# test_dataloader = dict(
-#     batch_size=5,
-#     dataset=dict(
-#         ann_file='annotations/instances_val2017.json',
-#         backend_args=None,
-#         data_prefix=dict(img='val2017/'),
-#         data_root='data/coco/',
-#         pipeline=[
-#             dict(backend_args=None, type='LoadImageFromFile'),
-#             dict(keep_ratio=True, scale=(
-#                 640,
-#                 640,
-#             ), type='Resize'),
-#             dict(
-#                 pad_val=dict(img=(
-#                     114,
-#                     114,
-#                     114,
-#                 )),
-#                 size=(
-#                     640,
-#                     640,
-#                 ),
-#                 type='Pad'),
-#             dict(type='LoadAnnotations', with_bbox=True),
-#             dict(
-#                 meta_keys=(
-#                     'img_id',
-#                     'img_path',
-#                     'ori_shape',
-#                     'img_shape',
-#                     'scale_factor',
-#                 ),
-#                 type='PackDetInputs'),
-#         ],
-#         test_mode=True,
-#         type='CocoDataset'),
-#     drop_last=False,
-#     num_workers=10,
-#     persistent_workers=True,
-#     sampler=dict(shuffle=False, type='DefaultSampler'))
-
-# test_evaluator = dict(
-#     ann_file='data/coco/annotations/instances_val2017.json',
-#     backend_args=None,
-#     format_only=False,
-#     metric='bbox',
-#     proposal_nums=(
-#         100,
-#         1,
-#         10,
-#     ),
-#     type='CocoMetric')
-
-
-test_dataloader = val_dataloader   ### BITIRME
-test_evaluator = val_evaluator     ### BITIRME
-
+    type='CocoMetric')
 vis_backends = [
     dict(type='LocalVisBackend'),
 ]
-
-
-# visualizer = dict(
-#     name='visualizer',
-#     type='DetLocalVisualizer',
-#     vis_backends=[
-#         dict(type='LocalVisBackend'),
-#     ])
-### BITIRME
 visualizer = dict(
     name='visualizer',
     type='DetLocalVisualizer',
     vis_backends=[
         dict(type='LocalVisBackend'),
-        dict(type='TensorboardVisBackend')]
-    )
-
+    ])
