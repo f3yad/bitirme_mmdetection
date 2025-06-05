@@ -9,6 +9,8 @@ train_ann_file = 'train_full_10.json'
 # val_ann_file = 'test.json'
 val_ann_file = 'val.json'
 
+test_ann_file = 'test.json'
+
 # train_data_prefix = 'train2017/'
 # train_data_prefix = 'train_images_jpg/'
 train_data_prefix = 'train_images_aug/'
@@ -16,6 +18,8 @@ train_data_prefix = 'train_images_aug/'
 # val_data_prefix = 'val2017/'
 # val_data_prefix = 'test_images_jpg/'
 val_data_prefix = 'val_images/'
+
+test_data_prefix = 'test_images/'
 
 # train_batch_size_per_gpu = 32
 train_batch_size_per_gpu = 10
@@ -36,6 +40,11 @@ base_lr = 0.0001
 num_classes = 7
 
 val_eval_ann_file = data_root + val_ann_file
+test_eval_ann_file = data_root + test_ann_file
+
+## DELETE
+# train_ann_file = val_ann_file
+# train_data_prefix = val_data_prefix
 
 metainfo = {
     'classes': ("Osteophytes", "Spondylolysthesis", "Disc space narrowing", "Other lesions", "Surgical implant", "Foraminal stenosis", "Vertebral collapse",),
@@ -165,7 +174,9 @@ model = dict(
             beta=2.0,
             loss_weight=1.0,
             type='QualityFocalLoss',
-            use_sigmoid=True),
+            use_sigmoid=True,
+            # class_weight=[0.36245528149124456, 0.9108114502010883, 0.8852609795355254, 0.6685188400764022, 0.8113804004214964, 0.7841140529531568, 1.0],
+        ),
         norm_cfg=dict(type='SyncBN'),
         num_classes=num_classes,
         pred_kernel_size=1,
@@ -424,21 +435,21 @@ train_dataloader = dict(
 # ]
 
 train_pipeline = [
-    dict(type='Mosaic', img_scale=(1333, 800), max_ratio=4 / 3, prob=0.5),  # Mosaic augmentation
-    dict(type='RandomFlip', flip_ratio=0.5),  # Random flip
-    dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),  # Resize image
-    dict(type='RandomCrop', crop_size=(512, 512), prob=0.5),  # Random crop to improve class distribution
-    dict(type='PhotometricDistortion', prob=0.5),  # Color jitter for more diversity in minor class appearances
-    dict(type='RandomBrightness', prob=0.3),  # Random brightness adjustment
-    dict(type='RandomContrast', prob=0.3),  # Random contrast adjustment
-    dict(type='RandomSaturation', prob=0.3),  # Random saturation adjustment
-    dict(type='CutOut', n_holes=8, max_h_size=32, max_w_size=32, prob=0.5),  # Cutout augmentation
-    dict(type='RandomAffine', scaling_ratio_range=(0.8, 1.2), prob=0.4),  # Random affine transformation
-    dict(type='RandomHSV', h_shift=0.1, s_shift=0.1, v_shift=0.1, prob=0.3),  # Random HSV shifts
-    dict(type='Normalize', mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True),  # Normalize
-    dict(type='Pad', size_divisor=32),  # Pad images to ensure divisible by 32
-    dict(type='DefaultFormatBundle'),  # Bundle data in standard format
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),  # Collect the data needed for the model
+    # dict(type='Mosaic', img_scale=(1333, 800), max_ratio=4 / 3, prob=0.5),  # Mosaic augmentation
+    # dict(type='RandomFlip', flip_ratio=0.5),  # Random flip
+    # dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),  # Resize image
+    # dict(type='RandomCrop', crop_size=(512, 512), prob=0.5),  # Random crop to improve class distribution
+    # dict(type='PhotometricDistortion', prob=0.5),  # Color jitter for more diversity in minor class appearances
+    # dict(type='RandomBrightness', prob=0.3),  # Random brightness adjustment
+    # dict(type='RandomContrast', prob=0.3),  # Random contrast adjustment
+    # dict(type='RandomSaturation', prob=0.3),  # Random saturation adjustment
+    # dict(type='CutOut', n_holes=8, max_h_size=32, max_w_size=32, prob=0.5),  # Cutout augmentation
+    # dict(type='RandomAffine', scaling_ratio_range=(0.8, 1.2), prob=0.4),  # Random affine transformation
+    # dict(type='RandomHSV', h_shift=0.1, s_shift=0.1, v_shift=0.1, prob=0.3),  # Random HSV shifts
+    # dict(type='Normalize', mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True),  # Normalize
+    # dict(type='Pad', size_divisor=32),  # Pad images to ensure divisible by 32
+    # dict(type='DefaultFormatBundle'),  # Bundle data in standard format
+    # dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),  # Collect the data needed for the model
 ]
 
 train_pipeline_stage2 = [
@@ -594,63 +605,68 @@ val_evaluator = dict(
 
 test_cfg = dict(type='TestLoop')
 
-# test_dataloader = dict(
-#     batch_size=5,
-#     dataset=dict(
-#         ann_file='annotations/instances_val2017.json',
-#         backend_args=None,
-#         data_prefix=dict(img='val2017/'),
-#         data_root='data/coco/',
-#         pipeline=[
-#             dict(backend_args=None, type='LoadImageFromFile'),
-#             dict(keep_ratio=True, scale=(
-#                 640,
-#                 640,
-#             ), type='Resize'),
-#             dict(
-#                 pad_val=dict(img=(
-#                     114,
-#                     114,
-#                     114,
-#                 )),
-#                 size=(
-#                     640,
-#                     640,
-#                 ),
-#                 type='Pad'),
-#             dict(type='LoadAnnotations', with_bbox=True),
-#             dict(
-#                 meta_keys=(
-#                     'img_id',
-#                     'img_path',
-#                     'ori_shape',
-#                     'img_shape',
-#                     'scale_factor',
-#                 ),
-#                 type='PackDetInputs'),
-#         ],
-#         test_mode=True,
-#         type='CocoDataset'),
-#     drop_last=False,
-#     num_workers=10,
-#     persistent_workers=True,
-#     sampler=dict(shuffle=False, type='DefaultSampler'))
+test_dataloader = dict(
+    batch_size=5,
+    dataset=dict(
+        metainfo=metainfo,   ### BITIRME
+        ann_file=test_ann_file,
+        backend_args=None,
+        data_prefix=dict(img=test_data_prefix),
+        data_root=data_root,
+        pipeline=[
+            dict(backend_args=None, type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                640,
+                640,
+            ), type='Resize'),
+            dict(
+                pad_val=dict(img=(
+                    114,
+                    114,
+                    114,
+                )),
+                size=(
+                    640,
+                    640,
+                ),
+                type='Pad'),
+            dict(type='LoadAnnotations', with_bbox=True),
+            dict(
+                meta_keys=(
+                    'img_id',
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackDetInputs'),
+        ],
+        test_mode=True,
+        type='CocoDataset'),
+    drop_last=False,
+    num_workers=10,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
 
-# test_evaluator = dict(
-#     ann_file='data/coco/annotations/instances_val2017.json',
-#     backend_args=None,
-#     format_only=False,
-#     metric='bbox',
-#     proposal_nums=(
-#         100,
-#         1,
-#         10,
-#     ),
-#     type='CocoMetric')
+test_evaluator = dict(
+    ann_file=test_eval_ann_file,
+    backend_args=None,
+    format_only=False,
+    collect_device = "gpu",
+    metric='bbox',
+    proposal_nums=(
+        100,
+        1,
+        10,
+    ),
+    # type='CocoMetric',
+    type='YOLOStylePR', ### BITIRME
+    classwise = True,   ### BITIRME
+    )
 
 
-test_dataloader = val_dataloader   ### BITIRME
-test_evaluator = val_evaluator     ### BITIRME
+# test_dataloader = val_dataloader   ### BITIRME
+# test_evaluator = val_evaluator     ### BITIRME
 
 vis_backends = [
     dict(type='LocalVisBackend'),

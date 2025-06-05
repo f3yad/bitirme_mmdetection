@@ -23,6 +23,6 @@ for bbox in bboxes:
     draw.rectangle([xmin, ymin, xmax, ymax], outline="red", width=3)
 
 # Save the image with bounding boxes
-output_path = "./draw1.jpg"
+output_path = "./draw1.png"
 image.save(output_path)
 print(f"Saved image with bounding boxes to: {output_path}")
