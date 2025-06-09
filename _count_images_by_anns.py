@@ -3,9 +3,9 @@ import json
 import os
 
 paths = {
-  "train": '/home/feyad/code/bitirme/datasets/spinexr/train.json',
-  "val": '/home/feyad/code/bitirme/datasets/spinexr/val.json',
-  "test": '/home/feyad/code/bitirme/datasets/spinexr/test.json',
+  "train": '/home/feyad/code/bitirme/datasets/spinexr/train_fixed.json',
+  "val": '/home/feyad/code/bitirme/datasets/spinexr/val_fixed.json',
+  "test": '/home/feyad/code/bitirme/datasets/spinexr/test_fixed.json',
 }
 
 def count(jsonpath, type):

@@ -18,11 +18,23 @@ import os
 # }
 
 paths = {
-  "train_full_10": '/home/feyad/code/bitirme/datasets/spinexr/train_full_10.json',
+  "train_fixed": '/home/feyad/code/bitirme/datasets/spinexr/train_fixed.json',
+  "val_fixed": '/home/feyad/code/bitirme/datasets/spinexr/val_fixed.json',
+  "test_fixed": '/home/feyad/code/bitirme/datasets/spinexr/test_fixed.json',
+  # "train_full_10": '/home/feyad/code/bitirme/datasets/spinexr/train_full_10.json',
   # "train_aug_10": '/home/feyad/code/bitirme/datasets/spinexr/train_aug_10.json',
   # "train": '/home/feyad/code/bitirme/datasets/spinexr/train.json',
 }
 
+categories = [
+  'Osteophytes',           # id 0
+  'Spondylolysthesis',     # id 1
+  'Disc space narrowing',  # id 2
+  'Other lesions',         # id 3
+  'Surgical implant',      # id 4
+  'Foraminal stenosis',    # id 5
+  'Vertebral collapse'     # id 6
+]
 
 anns_full_count = [0,0,0,0,0,0,0]
 def count(jsonpath, type):
@@ -38,16 +50,22 @@ def count(jsonpath, type):
     print(f"\t -- anns count: {len(data['annotations'])}")
     print(f"\t -- anns: {ann_count}")
 
-    # Normalize
-    print(f"\t NORMALIZE ")
-    total = sum(ann_count)
-    print(f"\t -- total: {total}")
 
-    weights = [total / ann for ann in ann_count]
-    print(f"\t -- whe: {weights}")
+    # display with category name:
+    print(f"{type} stats:")
+    for cat_name, count in zip(categories, ann_count):
+      print(f"{cat_name}: {count}")
+
+    # # Normalize
+    # # print(f"\t NORMALIZE ")
+    # total = sum(ann_count)
+    # print(f"\t -- total: {total}")
+
+    # weights = [total / ann for ann in ann_count]
+    # print(f"\t -- whe: {weights}")
     
-    weights = [w / max(weights) for w in weights]
-    print(f"\t -- whe: {weights}")
+    # weights = [w / max(weights) for w in weights]
+    # print(f"\t -- whe: {weights}")
 
 
 for t, p in paths.items():

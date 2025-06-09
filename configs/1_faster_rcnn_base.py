@@ -1,48 +1,31 @@
-# imports
-custom_imports = dict(
-        imports = [
-            'mmpretrain.models',
-            'custom_pipeline'
-        ],
-        allow_failed_imports=False
-    )
+##########
+## BASE ##
+##########
 
-# evaluate the model every X(interval) epoch.
-evaluation = dict(interval=1)
-
-#########################################################################################
-##### MODEL SETTINGS
+###############################################################
+### model settings
+###############################################################
 model = dict(
     type='FasterRCNN',
     data_preprocessor=dict(
         type='DetDataPreprocessor',
-        # mean=[123.675],  # 1 channel mean
-        # std=[58.395],    # 1 channel std
-        # bgr_to_rgb=False,  # <- set False to skip channel reorder
         mean=[123.675, 116.28, 103.53],
         std=[58.395, 57.12, 57.375],
         bgr_to_rgb=True,
         pad_size_divisor=32),
     backbone=dict(
-        type='mmpretrain.ConvNeXt',
-        arch="tiny",
+        type='ResNet',
+        depth=50,
+        num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
-        # in_channels=1,
-        # norm_cfg=dict(type='BN', requires_grad=True),
-        # norm_eval=True,
-        # style='pytorch',
-        # init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50'),
-        # init_cfg=None,
-        init_cfg=dict(
-            type='Pretrained',
-            checkpoint='https://download.openmmlab.com/mmclassification/v0/convnext/convnext-tiny_3rdparty_in1k_20220301-08aa5ddc.pth'
-        ),
-    ),
+        norm_cfg=dict(type='BN', requires_grad=True),
+        norm_eval=True,
+        style='pytorch',
+        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50')),
     neck=dict(
         type='FPN',
-        # in_channels=[256, 512, 1024, 2048],
-        in_channels=[96, 192, 384, 768],
+        in_channels=[256, 512, 1024, 2048],
         out_channels=256,
         num_outs=5),
     rpn_head=dict(
@@ -73,7 +56,7 @@ model = dict(
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
-            num_classes=7,
+            num_classes=80,
             bbox_coder=dict(
                 type='DeltaXYWHBBoxCoder',
                 target_means=[0., 0., 0., 0.],
@@ -139,33 +122,37 @@ model = dict(
 
 
 
-#########################################################################################
-##### DATASET SETTINGS
+
+###############################################################
+### dataset settings
+###############################################################
 dataset_type = 'CocoDataset'
-data_root = 'datasets/spinexr/'
+data_root = 'data/coco/'
 
-metainfo = dict(classes=(
-    'Osteophytes',           # id 0
-    'Spondylolysthesis',     # id 1
-    'Disc space narrowing',  # id 2
-    'Other lesions',         # id 3
-    'Surgical implant',      # id 4
-    'Foraminal stenosis',    # id 5
-    'Vertebral collapse'     # id 6
-))
+# Example to use different file client
+# Method 1: simply set the data root and let the file I/O module
+# automatically infer from prefix (not support LMDB and Memcache yet)
 
+# data_root = 's3://openmmlab/datasets/detection/coco/'
+
+# Method 2: Use `backend_args`, `file_client_args` in versions before 3.0.0rc6
+# backend_args = dict(
+#     backend='petrel',
+#     path_mapping=dict({
+#         './data/': 's3://openmmlab/datasets/detection/',
+#         'data/': 's3://openmmlab/datasets/detection/'
+#     }))
 backend_args = None
 
 train_pipeline = [
-    dict(type='LoadImageFromFile', color_type='color', backend_args=backend_args),
-    dict(type='PrintImageShape'),
+    dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='Resize', scale=(1333, 800), keep_ratio=True),
     dict(type='RandomFlip', prob=0.5),
     dict(type='PackDetInputs')
 ]
 test_pipeline = [
-    dict(type='LoadImageFromFile', color_type='color', backend_args=backend_args),
+    dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='Resize', scale=(1333, 800), keep_ratio=True),
     # If you don't have a gt annotation, delete the pipeline
     dict(type='LoadAnnotations', with_bbox=True),
@@ -181,11 +168,10 @@ train_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=True),
     batch_sampler=dict(type='AspectRatioBatchSampler'),
     dataset=dict(
-        metainfo=metainfo,
         type=dataset_type,
         data_root=data_root,
-        ann_file='train.json',
-        data_prefix=dict(img='train_images/'),
+        ann_file='annotations/instances_train2017.json',
+        data_prefix=dict(img='train2017/'),
         filter_cfg=dict(filter_empty_gt=True, min_size=32),
         pipeline=train_pipeline,
         backend_args=backend_args))
@@ -196,11 +182,10 @@ val_dataloader = dict(
     drop_last=False,
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
-        metainfo=metainfo,
         type=dataset_type,
         data_root=data_root,
-        ann_file='val.json',
-        data_prefix=dict(img='val_images/'),
+        ann_file='annotations/instances_val2017.json',
+        data_prefix=dict(img='val2017/'),
         test_mode=True,
         pipeline=test_pipeline,
         backend_args=backend_args))
@@ -208,7 +193,7 @@ test_dataloader = val_dataloader
 
 val_evaluator = dict(
     type='CocoMetric',
-    ann_file=data_root + 'val.json',
+    ann_file=data_root + 'annotations/instances_val2017.json',
     metric='bbox',
     format_only=False,
     backend_args=backend_args)
@@ -223,7 +208,6 @@ test_evaluator = val_evaluator
 #     drop_last=False,
 #     sampler=dict(type='DefaultSampler', shuffle=False),
 #     dataset=dict(
-#         metainfo=metainfo,
 #         type=dataset_type,
 #         data_root=data_root,
 #         ann_file=data_root + 'annotations/image_info_test-dev2017.json',
@@ -241,9 +225,42 @@ test_evaluator = val_evaluator
 
 
 
-#########################################################################################
-##### SCHEDULE SETTINGS
-# training schedule for 1x
+###############################################################
+### default runtime
+###############################################################
+default_scope = 'mmdet'
+
+default_hooks = dict(
+    timer=dict(type='IterTimerHook'),
+    logger=dict(type='LoggerHook', interval=50),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    checkpoint=dict(type='CheckpointHook', interval=1),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    visualization=dict(type='DetVisualizationHook'))
+
+env_cfg = dict(
+    cudnn_benchmark=False,
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0),
+    dist_cfg=dict(backend='nccl'),
+)
+
+vis_backends = [dict(type='LocalVisBackend')]
+visualizer = dict(
+    type='DetLocalVisualizer', vis_backends=vis_backends, name='visualizer')
+log_processor = dict(type='LogProcessor', window_size=50, by_epoch=True)
+
+log_level = 'INFO'
+load_from = None
+resume = False
+
+
+
+
+
+
+###############################################################
+### training schedule for 1x
+###############################################################
 train_cfg = dict(type='EpochBasedTrainLoop', max_epochs=12, val_interval=1)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
@@ -270,34 +287,4 @@ optim_wrapper = dict(
 #   - `enable` means enable scaling LR automatically
 #       or not by default.
 #   - `base_batch_size` = (8 GPUs) x (2 samples per GPU).
-auto_scale_lr = dict(enable=True, base_batch_size=16)
-
-
-
-
-#########################################################################################
-##### RUNTIME SETTINGS
-default_scope = 'mmdet'
-
-default_hooks = dict(
-    timer=dict(type='IterTimerHook'),
-    logger=dict(type='LoggerHook', interval=50),
-    param_scheduler=dict(type='ParamSchedulerHook'),
-    checkpoint=dict(type='CheckpointHook', interval=1),
-    sampler_seed=dict(type='DistSamplerSeedHook'),
-    visualization=dict(type='DetVisualizationHook'))
-
-env_cfg = dict(
-    cudnn_benchmark=False,
-    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0),
-    dist_cfg=dict(backend='nccl'),
-)
-
-vis_backends = [dict(type='LocalVisBackend')]
-visualizer = dict(
-    type='DetLocalVisualizer', vis_backends=vis_backends, name='visualizer')
-log_processor = dict(type='LogProcessor', window_size=50, by_epoch=True)
-
-log_level = 'INFO'
-load_from = None
-resume = False
+auto_scale_lr = dict(enable=False, base_batch_size=16)
