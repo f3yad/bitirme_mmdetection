@@ -151,11 +151,11 @@ metainfo = dict(classes=(
     'Vertebral collapse'     # id 6
 ))
 
-train_anns = "train_full_fixed.json"
+train_anns = "train_aug_sample.json"
 val_anns = "val_fixed.json"
 test_anns = "test_fixed.json"
 
-train_dir = "train_images_aug/"
+train_dir = "train_images_sample/"
 val_dir = "val_images/"
 test_dir = "test_images/"
 

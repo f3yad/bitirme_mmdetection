@@ -21,8 +21,9 @@ paths = {
   "train_fixed": '/home/feyad/code/bitirme/datasets/spinexr/train_fixed.json',
   "val_fixed": '/home/feyad/code/bitirme/datasets/spinexr/val_fixed.json',
   "test_fixed": '/home/feyad/code/bitirme/datasets/spinexr/test_fixed.json',
-  # "train_full_10": '/home/feyad/code/bitirme/datasets/spinexr/train_full_10.json',
-  # "train_aug_10": '/home/feyad/code/bitirme/datasets/spinexr/train_aug_10.json',
+  "train_full_10": '/home/feyad/code/bitirme/datasets/spinexr/train_full_10.json',
+  "train_sample": '/home/feyad/code/bitirme/datasets/spinexr/train_sample.json',
+  "train_aug_sample": '/home/feyad/code/bitirme/datasets/spinexr/train_aug_sample.json',
   # "train": '/home/feyad/code/bitirme/datasets/spinexr/train.json',
 }
 
@@ -52,9 +53,11 @@ def count(jsonpath, type):
 
 
     # display with category name:
+    print("\n\n##################################")
     print(f"{type} stats:")
     for cat_name, count in zip(categories, ann_count):
       print(f"{cat_name}: {count}")
+    print("##################################\n\n")
 
     # # Normalize
     # # print(f"\t NORMALIZE ")

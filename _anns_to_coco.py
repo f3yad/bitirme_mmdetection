@@ -3,9 +3,9 @@ import json
 from PIL import Image
 import os
 
-images_dir_path = "./datasets/spinexr/train_images_aug"
-csv_ann_file_path = "./datasets/spinexr/train_aug_10.csv"
-out_json_path = "./datasets/spinexr/train_aug_10.json"
+images_dir_path = "./datasets/spinexr/train_images_sample"
+csv_ann_file_path = "./datasets/spinexr/train_aug_sample.csv"
+out_json_path = "./datasets/spinexr/train_aug_sample.json"
 categories = {
   "Osteophytes": 0,
   "Spondylolysthesis": 1,
