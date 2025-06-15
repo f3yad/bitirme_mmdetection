@@ -4,6 +4,7 @@ data_root = 'datasets/spinexr/' # dataset root
 # train_ann_file = 'annotations/instances_train2017.json'
 # train_ann_file = 'train.json'
 train_ann_file = 'train_full_10.json'
+train_ann_file = 'train_aug_sample.json'
 
 # val_ann_file = 'annotations/instances_val2017.json'
 # val_ann_file = 'test.json'
@@ -14,6 +15,7 @@ test_ann_file = 'test.json'
 # train_data_prefix = 'train2017/'
 # train_data_prefix = 'train_images_jpg/'
 train_data_prefix = 'train_images_aug/'
+train_data_prefix = 'train_images_sample/'
 
 # val_data_prefix = 'val2017/'
 # val_data_prefix = 'test_images_jpg/'

@@ -51,8 +51,8 @@ model = dict(
             target_means=[.0, .0, .0, .0],
             target_stds=[1.0, 1.0, 1.0, 1.0]),
         loss_cls=dict(
-            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0),
-        loss_bbox=dict(type='L1Loss', loss_weight=1.0)),
+            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0, class_weight=2.0),  ## add class_weight
+        loss_bbox=dict(type='L1Loss', loss_weight=5.0)), ## 1
     roi_head=dict(
         type='StandardRoIHead',
         bbox_roi_extractor=dict(
@@ -72,8 +72,11 @@ model = dict(
                 target_stds=[0.1, 0.1, 0.2, 0.2]),
             reg_class_agnostic=False,
             loss_cls=dict(
-                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
-            loss_bbox=dict(type='L1Loss', loss_weight=1.0))),
+                type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0, class_weight=2.0),  ## add class_weight
+        loss_bbox=dict(type='L1Loss', loss_weight=5.0)), ## 1
+            #     type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+            # loss_bbox=dict(type='L1Loss', loss_weight=1.0))
+        ),
     # model training and testing settings
     train_cfg=dict(
         rpn=dict(
@@ -151,11 +154,11 @@ metainfo = dict(classes=(
     'Vertebral collapse'     # id 6
 ))
 
-train_anns = "train_aug_sample.json"
+train_anns = "train_fixed.json"
 val_anns = "val_fixed.json"
 test_anns = "test_fixed.json"
 
-train_dir = "train_images_sample/"
+train_dir = "train_images/"
 val_dir = "val_images/"
 test_dir = "test_images/"
 
