@@ -44,20 +44,20 @@ def augmentation(imgpath, img_anns):
 
   # 1. Instantiate the transform
   pipeline = A.Compose([
-    A.VerticalFlip(p=0.5),
-    A.HorizontalFlip(p=0.5),
-    A.Transpose(p=0.2),  # swapping rows X columns
-    A.RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=(-0.05,0.2), p=0.5),
-    A.BBoxSafeRandomCrop(p=0.5),
-    A.Rotate(limit=(-90, 90) , p=0.5),
+    # A.VerticalFlip(p=0.5),
+    # A.HorizontalFlip(p=0.5),
+    # A.Transpose(p=0.2),  # swapping rows X columns
+    # A.RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=(-0.05,0.2), p=0.5),
+    # A.BBoxSafeRandomCrop(p=0.5),
+    # A.Rotate(limit=(-90, 90) , p=0.5),
 
     A.VerticalFlip(p=0.5),
     A.HorizontalFlip(p=0.5),
-    A.RandomBrightnessContrast(0.2, 0.2, p=0.5),
-    # A.RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=(-0.05,0.2), p=0.5),
     A.Rotate(limit=10, border_mode=cv2.BORDER_REFLECT, p=0.5),
-    # A.Normalize(mean=(0.5,), std=(0.5,), max_pixel_value=255.0),
+    A.RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=(-0.05,0.2), p=0.5),
     A.BBoxSafeRandomCrop(p=0.5),
+
+    
     A.Affine(scale=[0.8, 1.2],translate_percent=[-0.1, 0.1],rotate=[-4, 4],shear="0",interpolation=cv2.INTER_LINEAR,mask_interpolation=cv2.INTER_NEAREST,fit_output=False,keep_ratio=False,rotate_method="ellipse",balanced_scale=True,border_mode=cv2.BORDER_CONSTANT,fill=0,fill_mask=0)
   ],
     bbox_params=A.BboxParams(format='coco', label_fields=['labels'])

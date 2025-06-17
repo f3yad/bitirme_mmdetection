@@ -1,0 +1,8 @@
+f_yolo_pred.py   yolo pred
+
+faster pred
+python mmdetection\tools\test.py configs\5_faster_rcnn_base_resnet50_VOC_sample.py work_dirs\5_faster_rcnn_base_resnet50_VOC_sample\epoch_78.pth --out f_faster_pred.pkl
+
+
+
+f_ensembling
